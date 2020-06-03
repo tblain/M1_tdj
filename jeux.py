@@ -6,22 +6,24 @@ class Jeu(object):
     """Docstring for Jeu. """
 
     def __init__(self, player1=None, player2=None, nb_cases=7, nb_stones=15):
+        # TODO: refaire la doc
         """
         @param: strat1: strategie du joueur 1
         @param: strat2: strategie du joueur 2
         """
 
         self.nb_case = nb_cases
+        self.mp = nb_cases // 2
         self.nb_stones = nb_stones
 
 
         # numero de la case ou se situe le troll, va de 0 a 6 (0 et 6 etant les cases des chateaux)
-        self.troll_case = nb_cases // 2  # 3 par default
+        self.troll_case = 0
 
         # colonne 0 : nb de pierre jouees par le joueur 1 a l'etape i
         # colonne 1 : nb de pierre jouees par le joueur 1 a l'etape i
         # colonne 2 : case sur laquelle se trouve le troll a l'etape i juste avant que les joueurs ne jouent
-        self.history = np.zeros((nb_stones, 3))
+        self.history = np.zeros((nb_stones, 3), dtype='int16')
         self.history[0, 2] = self.troll_case
 
         # les players peuvent etre definies apres
@@ -32,7 +34,6 @@ class Jeu(object):
         self.finish = False
         self.score = 0
         self.nb_step = 0
-
 
     def step(self):
         """
@@ -48,8 +49,8 @@ class Jeu(object):
         print("Joueur 1: ", self.player1.nb_stones, " / ", stones1)
         print("Joueur 2: ", self.player2.nb_stones, " / ", stones2)
 
-        assert stones1 >= 0
-        assert stones2 >= 0
+        assert stones1 > 0
+        assert stones2 > 0
 
         assert stones1 <= self.player1.nb_stones
         assert stones2 <= self.player2.nb_stones
@@ -66,6 +67,7 @@ class Jeu(object):
         else:
             # sens dans lequel le troll va se deplacer
 
+            depl = 0
             if stones2 > stones1:
                 depl = -1
             else:
@@ -100,50 +102,60 @@ class Jeu(object):
         """
         return
         """
-        if self.player1.nb_stones == 0:
+        if self.troll_case <= -self.mp:
+            # joueur 2 gagne
             self.finish = True
-
-            # on fait avancer l'autre joueur d'autant que ses pierres
-            stones2 = self.player2.nb_stones
-            nb_depl = max(stones2 - self.troll_case, 0)
-            self.player2.nb_stones -= nb_depl
-            self.troll_case -= nb_depl
-            print("plus de pierre 1")
-
-        elif self.player2.nb_stones == 0:
+            self.score = -1
+        elif self.troll_case >= self.mp:
             self.finish = True
+            # joueur 1 gagne
+            # print("pierres: ", self.player2.nb_stones)
+            self.score = 1
+        else:
+            if self.player1.nb_stones == 0:
+                self.finish = True
+                # on fait avancer l'autre joueur d'autant que ses pierres
 
-            # on fait avancer l'autre joueur d'autant que ses pierres
-            stones1 = self.player1.nb_stones
-            nb_depl = min(stones1 - self.troll_case, 6)
-            self.player1.nb_stones -= nb_depl
-            self.troll_case += nb_depl
-            print("plus de pierre 2")
+                deplacement = abs(self.troll_case - (-self.mp))
+                nb_depl = min(deplacement, self.player2.nb_stones)
+                self.player2.nb_stones -= nb_depl
+                self.troll_case -= nb_depl
+                print("plus de pierre 1")
 
-        if self.troll_case == 0:
-            # joueur 2 gagne: il gagne des points par rapport aux nombre de pierre qu'il lui reste
-            self.finish = True
-            self.score = - max(self.player2.nb_stones, 1)
-        elif self.troll_case == 6:
-            self.finish = True
-            # joueur 1 gagne: il gagne des points par rapport aux nombre de pierre qu'il lui reste
-            print("pierres: ", self.player2.nb_stones)
-            self.score = max(self.player1.nb_stones, 1)
-        elif self.finish:
-            if self.troll_case == 3:
-                # match nul
-                self.score = 0
-            elif self.troll_case > 3:
-                # joueur 1 gagne: il gagne des points par rapport aux nombre de pierre qu'il lui reste
-                self.score = max(self.player1.nb_stones, 1)
-            else:
-                # joueur 2 gagne: il gagne des points par rapport aux nombre de pierre qu'il lui reste
-                self.score = - max(self.player2.nb_stones, 1)
+            elif self.player2.nb_stones == 0:
+                self.finish = True
+
+                # on fait avancer l'autre joueur d'autant que ses pierres
+                depl_max = abs(self.troll_case - self.mp)
+                nb_depl = min(depl_max, self.player1.nb_stones)
+                self.player1.nb_stones -= nb_depl
+                self.troll_case += nb_depl
+                print("plus de pierre 2")
+
+            if self.troll_case <= -self.mp:
+                # joueur 2 gagne
+                self.finish = True
+                self.score = -1
+            elif self.troll_case >= self.mp:
+                self.finish = True
+                # joueur 1 gagne
+                # print("pierres: ", self.player2.nb_stones)
+                self.score = 1
+            elif self.finish:
+                if self.troll_case == 0:
+                    # match nul
+                    self.score = 0
+                elif self.troll_case > 0:
+                    # joueur 1 gagne: il gagne des points par rapport aux nombre de pierre qu'il lui reste
+                    self.score = 1
+                else:
+                    # joueur 2 gagne: il gagne des points par rapport aux nombre de pierre qu'il lui reste
+                    self.score = -1
 
         return self.finish
 
     def print_board(self):
-        for i in range(7):
+        for i in range(-self.mp, self.mp+1):
             if i == self.troll_case:
                 print("T", end =" ")
             else:

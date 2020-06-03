@@ -1,6 +1,6 @@
 from jeux import Jeu
-from strats import Strategie_naive_always_1, Strategie_naive_always_2, Strategie_naive_defensive, Strategie_naive_plus_one
+from strats import Strategie_naive_always_1, Strategie_naive_always_2, Strategie_naive_defensive, Strategie_naive_plus_one, Strategie_prudente
 
-jeu = Jeu(Strategie_naive_plus_one, Strategie_naive_defensive)
+jeu = Jeu(Strategie_prudente, Strategie_naive_defensive, 7, 15)
 
 jeu.play()

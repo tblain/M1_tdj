@@ -13,7 +13,7 @@ class Conf(object):
         # nb pierre du joueur 2
         self.y = y
 
-        # position du troll : 0 => au milieu, -mp position du chateau du troll
+        # position du troll : 0 => au milieu, -mp position du chateau du joueur 1
         self.t = t
 
         # nombre de case depuis le centre jusqu'a la tour
@@ -27,14 +27,14 @@ class Conf(object):
         self.val = None
 
         # distribution de proba que devra jouer le joueur 1 avec cette configuration
-        self.strat1 = np.empty((x))
+        self.strat1 = np.zeros((x)) +10
         # la partie joueur 2 ne fonctionne pas
-        self.strat2 = np.empty((y))
+        self.strat2 = np.zeros((y)) +10
 
         # tableau contenant les valeurs de toutes les possibilites a partir de la conf
         # sert pour resoudre le simplex
         self.tab = np.empty((x, y), dtype='object')
-        self.eval_tab = np.empty((x, y))
+        self.eval_tab = np.zeros((x, y)) + 10
 
     def get_possible_conf(self):
         # on parcourt toutes les quantites de pierres jouables a partie de la conf
@@ -57,8 +57,8 @@ class Conf(object):
                 if conf == -1:
                     conf = Conf(x, y, t, self.mp, self.dic)
 
-                self.tab[x, y] = conf
-                self.eval_tab[x, y] = conf.eval()
+                self.tab[i-1, j-1] = conf
+                self.eval_tab[i-1, j-1] = conf.eval()
 
     def resolve(self):
         prob = LpProblem("Conf_" + str(self.x) + "_" + str(self.y) + "_" + str(self.t), LpMaximize)
@@ -68,9 +68,16 @@ class Conf(object):
 
         nb_strat1 = self.x
         nb_strat2 = self.y
+        # self.eval_tab = np.transpose(self.eval_tab)
 
         # distribution de prob des strats a calculer
-        var1 = [LpVariable('x'+str(i), lowBound=0, cat='Continuous') for i in range(nb_strat1)]
+        var1 = [LpVariable(''+str(i), lowBound=0, cat='Continuous') for i in range(nb_strat1)]
+
+        # for j in range(nb_strat1):
+            # prob += [var1[j] * self.eval_tab[i][j] for i in range(nb_strat2)] >= val
+
+        # for j in range(nb_strat2):
+            # prob += [var1[i] * self.eval_tab[j][i] for i in range(nb_strat1)] >= val
 
         for j in range(nb_strat2):
             prob += [var1[i] * self.eval_tab[i][j] for i in range(nb_strat1)] >= val
@@ -80,26 +87,32 @@ class Conf(object):
         # precision dans le probleme qu'on veut maximiser val
         prob += LpAffineExpression(val)
 
-        # print(prob.constraints)
-        # print(prob.objective)
 
         prob.solve()
 
-        # print("Status:", LpStatus[prob.status])
 
         self.resolu = True
 
         for i, v in enumerate(prob.variables()):
-            if i == 0:
+            if v.name == "val":
                 self.val = v.varValue
             else:
-                self.strat1[i-1] = v.varValue
+                self.strat1[int(v.name)] = v.varValue
 
-        if (self.x == 5 and self.y == 3 and self.t == -1) or (self.x == 4 and self.y == 3) or (self.x == 5 and self.y == 4):
+        if (self.x == 15 and self.y == 15):
+        # if (self.x == 5 and self.y == 4 and self.t == -1):
+        # if (self.x == 8 and self.y == 11 and self.t == 0):
+        # if (self.x == 9 and self.y == 13 and self.t == 1):
+        # if (self.x == 5 and self.y == 3 and self.t == -1) or (self.x == 4 and self.y == 3) or (self.x == 5 and self.y == 4):
+            # print(self.eval_tab)
+            # for c in prob.constraints:
+                # print(prob.constraints[c])
+            # print(prob.objective)
+            # print("Distrib")
+            # for i, v in enumerate(prob.variables()):
+                # print(v, v.varValue, int(v))
+            # print(nb_strat1, nb_strat2, self.t, " = > ", self.val)
             pass
-            print(nb_strat1, nb_strat2, self.t, " = > ", self.val)
-            print(self.eval_tab)
-
 
     def eval(self):
         if self.resolu:
@@ -144,11 +157,13 @@ if __name__ == "__main__":
 
     dic = {}
 
-    # conf_base = Conf(5, 4, -1, mp, dic)
+    # conf_base = Conf(5, 4, -1, 2, dic)
 
-    # conf_base = Conf(4, 3, -1, mp, dic)
+    # conf_base = Conf(4, 3, -1, 2, dic)
 
-    # conf_base = Conf(3, 0, -2, mp, dic)
+    # conf_base = Conf(8, 11, 0, mp, dic)
+
+    # conf_base = Conf(9, 13, 1, mp, dic)
 
     conf_base = Conf(p, p, 0, mp, dic)
     # dic['' + str(p) + " " + str(p) + " " + str(0)] = conf_base
