@@ -5,7 +5,7 @@ class Jeu(object):
 
     """Docstring for Jeu. """
 
-    def __init__(self, player1=None, player2=None, nb_cases=7, nb_stones=15):
+    def __init__(self, player1=None, player2=None, nb_cases=7, nb_stones=15, troll_case=0):
         # TODO: refaire la doc
         """
         @param: strat1: strategie du joueur 1
@@ -18,7 +18,7 @@ class Jeu(object):
 
 
         # numero de la case ou se situe le troll, va de 0 a 6 (0 et 6 etant les cases des chateaux)
-        self.troll_case = 0
+        self.troll_case = troll_case
 
         # colonne 0 : nb de pierre jouees par le joueur 1 a l'etape i
         # colonne 1 : nb de pierre jouees par le joueur 1 a l'etape i
@@ -109,7 +109,6 @@ class Jeu(object):
         elif self.troll_case >= self.mp:
             self.finish = True
             # joueur 1 gagne
-            # print("pierres: ", self.player2.nb_stones)
             self.score = 1
         else:
             if self.player1.nb_stones == 0:
@@ -139,7 +138,6 @@ class Jeu(object):
             elif self.troll_case >= self.mp:
                 self.finish = True
                 # joueur 1 gagne
-                # print("pierres: ", self.player2.nb_stones)
                 self.score = 1
             elif self.finish:
                 if self.troll_case == 0:
