@@ -4,8 +4,8 @@ from conf import Conf
 
 class Strategie:
 
-    def __init__(self, nb_stones=15, nb_cases=7, history=None, player=1):
-        self.nb_stones = nb_stones
+    def __init__(self, nb_stones1=15, nb_stones2=15, nb_cases=7, history=None, player=1):
+        self.nb_stones = max(nb_stones1, nb_stones2)
         self.nb_cases = nb_cases
         self.history = history
         self.player = player
@@ -61,8 +61,8 @@ class Strategie_naive_defensive(Strategie):
     else play 2 stones
     """
 
-    def __init__(self, nb_stones, nb_cases, history, player):
-        super().__init__(nb_stones, nb_cases, history, player)
+    def __init__(self, nb_stones1, nb_stones2, nb_cases, history, player):
+        super().__init__(nb_stones1, nb_stones2, nb_cases, history, player)
         self.middle_case = nb_cases // 2
 
     def launch_stones(self, nb_step):
@@ -80,13 +80,16 @@ class Strategie_prudente(Strategie):
     Joue en suivant la strategie prudente calculee avec les theories des jeux
     """
 
-    def __init__(self, nb_stones, nb_cases, history, player):
-        super().__init__(nb_stones, nb_cases, history, player)
+    def __init__(self, nb_stones1, nb_stones2, nb_cases, history, player):
+        super().__init__(nb_stones1, nb_stones2, nb_cases, history, player)
         self.dic = {}
-        self.conf = Conf(nb_stones, nb_stones, history[0][2], nb_cases // 2, self.dic)
+        self.conf = Conf(nb_stones1, nb_stones2, history[0][2], nb_cases // 2, self.dic)
         self.conf.eval()
-        self.nb_p1 = nb_stones
-        self.nb_p2 = nb_stones
+        print()
+        print("gain: ", self.conf.eval())
+        print()
+        self.nb_p1 = nb_stones1
+        self.nb_p2 = nb_stones2
 
     def launch_stones(self, nb_step):
         # on met a jour la conf par rapport au choix de l'autre et du notre
@@ -96,8 +99,9 @@ class Strategie_prudente(Strategie):
             t = self.history[nb_step, 2]
 
             self.conf = self.dic.get("" + str(self.nb_p1) + " " + str(self.nb_p2) + " " + str(t), -1)
+            assert not self.conf == -1
 
-        p = np.random.choice(self.nb_p1, 1, p=self.conf.strat1[::1])
         print("Distribution de strategie: ", self.conf.strat1)
+        p = np.random.choice(self.nb_p1, 1, p=self.conf.strat1[::1])
 
         return p[0] + 1

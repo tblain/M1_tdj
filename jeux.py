@@ -5,7 +5,7 @@ class Jeu(object):
 
     """Docstring for Jeu. """
 
-    def __init__(self, player1=None, player2=None, nb_cases=7, nb_stones=15, troll_case=0):
+    def __init__(self, player1=None, player2=None, nb_cases=7, nb_stones1=15, nb_stones2=15, troll_case=0):
         # TODO: refaire la doc
         """
         @param: strat1: strategie du joueur 1
@@ -14,7 +14,7 @@ class Jeu(object):
 
         self.nb_case = nb_cases
         self.mp = nb_cases // 2
-        self.nb_stones = nb_stones
+        self.nb_stones = max(nb_stones1, nb_stones2)
 
 
         # numero de la case ou se situe le troll, va de 0 a 6 (0 et 6 etant les cases des chateaux)
@@ -23,13 +23,13 @@ class Jeu(object):
         # colonne 0 : nb de pierre jouees par le joueur 1 a l'etape i
         # colonne 1 : nb de pierre jouees par le joueur 1 a l'etape i
         # colonne 2 : case sur laquelle se trouve le troll a l'etape i juste avant que les joueurs ne jouent
-        self.history = np.zeros((nb_stones, 3), dtype='int16')
+        self.history = np.zeros((max(nb_stones1, nb_stones2), 3), dtype='int16')
         self.history[0, 2] = self.troll_case
 
         # les players peuvent etre definies apres
         # les players sont des objets qui doivent avoir une fonction: launch stones
-        self.player1 = player1(nb_stones, nb_cases, self.history, 0)
-        self.player2 = player2(nb_stones, nb_cases, self.history, 1)
+        self.player1 = player1(nb_stones1, nb_stones2, nb_cases, self.history, 0)
+        self.player2 = player2(nb_stones1, nb_stones2, nb_cases, self.history, 1)
 
         self.finish = False
         self.score = 0
